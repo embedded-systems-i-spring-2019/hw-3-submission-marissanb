@@ -1,0 +1,94 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity AND_GATE is
+    port(
+        AND_I1, AND_I2: in std_logic;
+        AND_OUT: out std_logic);
+end AND_GATE;
+architecture my_and of AND_GATE is
+begin
+    AND_OUT <= (AND_I1 AND AND_I2);
+end my_and;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity P7_4 is
+  Port ( 
+        LDA, LDB: in std_logic;
+        X, Y: in std_logic_vector (7 downto 0);
+        S0, S1: in std_logic;
+        RD: in std_logic;
+        CLK: in std_logic;
+        RA, RB: out std_logic_vector(7 downto 0)
+  );
+end P7_4;
+
+architecture structural of P7_4 is
+-- component declaration
+component AND_GATE
+port(
+        AND_I1, AND_I2: in std_logic;
+        AND_OUT: out std_logic);
+end component;
+component MUX2
+ port ( 
+        X,Y : in std_logic_vector(7 downto 0);
+        S: in std_logic;
+        MUX_OUT: out std_logic_vector (7 downto 0));
+end component;
+component REG
+port(
+        REG_IN: in std_logic_vector(7 downto 0);
+        CLK: in std_logic;
+        LD: in std_logic;
+        REG_OUT: out std_logic_vector(7 downto 0));
+end component;
+-- intermediate signal declaration
+signal and1_out, and2_out: std_logic;
+signal not_rd, not_clock: std_logic;
+signal mux0_out, mux1_out: std_logic_vector(7 downto 0);
+signal rega_out, regb_out: std_logic_vector(7 downto 0);
+
+begin
+and1: AND_GATE
+port map(
+        AND_I1 => LDB,
+        AND_I2 => not_rd,
+        AND_OUT => and1_out);
+mux0: MUX2
+port map(
+        X => X,
+        Y => Y,
+        S => S1,
+        MUX_OUT => mux0_out);
+regb: REG
+port map(
+        REG_IN => mux0_out,
+        CLK => not_clock,
+        LD => and1_out,
+        REG_OUT => regb_out);
+and2: AND_GATE
+port map(
+        AND_I1 => LDA,
+        AND_I2 => RD,
+        AND_OUT => and2_out);
+mux1: MUX2
+port map(
+        X => regb_out,
+        Y => Y,
+        S => S0,
+        MUX_OUT => mux1_out);
+rega: REG
+port map(
+        REG_IN => mux1_out,
+        CLK => not_clock,
+        LD => and2_out,
+        REG_OUT => rega_out);
+not_rd <= NOT(RD);
+not_clock <= NOT(CLK);
+RB <= regb_out;
+RA <= rega_out;
+        
+end structural;
