@@ -1,0 +1,65 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity P7_6 is
+  Port (
+        A, B, C : in std_logic_vector(7 downto 0);
+        SEL1, SEL2: in std_logic;
+        CLK: in std_logic;
+        RAP, RBP: out std_logic_vector(7 downto 0)
+   );
+end P7_6;
+
+architecture structural of P7_6 is
+-- component declaration
+component Decoder
+ port(
+        DS: in std_logic;
+        LDA, LDB: out std_logic);
+end component;
+component MUX2
+port ( 
+        X,Y : in std_logic_vector(7 downto 0);
+        S: in std_logic;
+        MUX_OUT: out std_logic_vector (7 downto 0));
+end component;
+component REG
+port(
+        REG_IN: in std_logic_vector(7 downto 0);
+        CLK: in std_logic;
+        LD: in std_logic;
+        REG_OUT: out std_logic_vector(7 downto 0));
+end component;
+-- intermediate signal declaration
+signal mux0_out: std_logic_vector(7 downto 0);
+signal dec1_out, dec2_out: std_logic;
+signal rega_out, regb_out: std_logic_vector(7 downto 0);
+
+begin
+
+mux0: MUX2
+port map(
+        X => A,
+        Y => B,
+        S => SEL1,
+        MUX_OUT => mux0_out);
+dec: Decoder
+port map(
+        DS => SEL2,
+        LDA => dec1_out,
+        LDB => dec2_out);
+rega: REG
+port map(
+        REG_IN => mux0_out,
+        CLK => CLK,
+        LD => dec1_out,
+        REG_OUT => rega_out);
+regb: REG
+port map(
+        REG_IN => C,
+        CLK => CLK,
+        LD => dec2_out,
+        REG_OUT => regb_out);
+RAP <= rega_out;
+RBP <= regb_out;
+end structural;
