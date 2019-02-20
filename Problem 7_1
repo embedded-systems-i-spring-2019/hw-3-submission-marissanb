@@ -1,0 +1,30 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity P7_1 is
+  Port ( 
+        LDA: in std_logic;
+        SEL: in std_logic;
+        CLK: in std_logic;
+        A, B: in std_logic_vector(7 downto 0);
+        F: out std_logic_vector(7 downto 0)
+  );
+end P7_1;
+
+architecture Behavioral of P7_1 is
+begin
+process (CLK)
+    begin
+    if rising_edge(CLK) then
+        if LDA = '1' then
+            if SEL = '0' then
+                F <= A;
+            else
+                F <= B;
+            end if;
+         end if;
+      end if;
+end process;
+               
+
+end Behavioral;
