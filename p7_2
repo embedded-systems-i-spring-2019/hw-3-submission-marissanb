@@ -1,0 +1,118 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity Decoder is
+    port(
+        DS: in std_logic;
+        LDA, LDB: out std_logic);
+end Decoder;
+architecture my_decoder of Decoder is
+begin
+    LDA <= '1' when (DS='0');
+    LDB <= '1' when DS='1';
+end my_decoder;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+entity mux is
+    port(
+        X,Y,Z,RB: in std_logic_vector(7 downto 0);
+        MS: in std_logic_vector(1 downto 0);
+        MUX_OUT: out std_logic_vector(7 downto 0));
+end mux;
+architecture my_mux of mux is
+begin
+    with MS select
+    MUX_OUT <= X when "11",
+            Y when "10",
+            Z when "01",
+            RB when "00",
+            (others => '0') when others;
+end my_mux;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+entity REG is
+    port(
+        REG_IN: in std_logic_vector(7 downto 0);
+        CLK: in std_logic;
+        LD: in std_logic;
+        REG_OUT: out std_logic_vector(7 downto 0));
+end REG;
+architecture my_reg of REG is
+    begin
+    reg: process(CLK)
+        begin
+        if (falling_edge(CLK)) then
+            if (LD = '1') then
+                REG_OUT <= REG_IN;
+            end if;
+        end if;
+     end process reg;
+end my_reg;                
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+entity P7_2 is
+  Port ( 
+        DS: in std_logic;
+        X, Y, Z: in std_logic_vector(7 downto 0);
+        MS: in std_logic_vector(1 downto 0);
+        CLK: in std_logic;
+        RB, RA: out std_logic_vector(7 downto 0)
+  );
+end P7_2;
+
+architecture structural of P7_2 is
+--component declaration
+component Decoder
+ port(
+        DS: in std_logic;
+        LDA, LDB: out std_logic);
+end component;
+component mux
+ port(
+        X,Y,Z,RB: in std_logic_vector(7 downto 0);
+        MS: in std_logic_vector(1 downto 0);
+        MUX_OUT: out std_logic_vector(7 downto 0));
+end component;
+component REG
+port(
+        REG_IN: in std_logic_vector(7 downto 0);
+        CLK: in std_logic;
+        LD: in std_logic;
+        REG_OUT: out std_logic_vector(7 downto 0));
+end component;
+-- intermediate signal declaration
+signal lda_out : std_logic;
+signal ldb_out: std_logic;
+signal mux_out: std_logic_vector(7 downto 0);
+signal ra_out: std_logic_vector( 7 downto 0);
+signal rb_out: std_logic_vector(7 downto 0);
+
+begin
+    DEC: Decoder
+    port map (DS => DS,
+            LDA => lda_out,
+            LDB => ldb_out);
+    MX: mux
+    port map (X => X,
+            Y => Y,
+            Z => Z,
+            RB => rb_out,
+            MS => MS,
+            MUX_OUT => mux_out);       
+    RegA: REG
+    port map (REG_IN => mux_out,
+            LD => lda_out,
+            CLK => CLK,
+            REG_OUT => ra_out);
+     RegB: REG
+    port map (REG_IN => ra_out,
+            LD => ldb_out,
+            CLK => CLK,
+            REG_OUT => rb_out);    
+    RB <= rb_out;
+    RA <= ra_out;   
+        
+end structural;
