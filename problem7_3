@@ -1,0 +1,97 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity MUX2 is
+    port ( 
+        X,Y : in std_logic_vector(7 downto 0);
+        S: in std_logic;
+        MUX_OUT: out std_logic_vector (7 downto 0));
+end MUX2;
+architecture my_mux of MUX2 is
+begin
+    with S select
+        MUX_OUT <= X when '1',
+                Y when '0',
+                (others => '0') when others;
+end my_mux;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+entity REG2 is
+    port(
+        REG_IN: in std_logic_vector(7 downto 0);
+        CLK: in std_logic;
+        LD: in std_logic;
+        REG_OUT: out std_logic_vector(7 downto 0));
+end REG2;
+architecture my_reg of REG2 is
+    begin
+    reg: process(CLK)
+        begin
+        if (rising_edge(CLK)) then
+            if (LD = '1') then
+                REG_OUT <= REG_IN;
+            end if;
+        end if;
+     end process reg;
+end my_reg; 
+               
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+entity P7_3 is
+  Port ( 
+        LDA, LDB: in std_logic;
+        X_IN, Y_IN: in std_logic_vector(7 downto 0);
+        S1, S0: in std_logic;
+        CLK: in std_logic;
+        RB: out std_logic_vector(7 downto 0)
+  );
+end P7_3;
+
+architecture structural of P7_3 is
+-- component declaration
+component MUX2
+ port ( 
+        X,Y : in std_logic_vector(7 downto 0);
+        S: in std_logic;
+        MUX_OUT: out std_logic_vector (7 downto 0));
+end component;
+component REG2
+port(
+        REG_IN: in std_logic_vector(7 downto 0);
+        CLK: in std_logic;
+        LD: in std_logic;
+        REG_OUT: out std_logic_vector(7 downto 0));
+end component;
+-- intermediate signal declaration
+signal mux0_out, mux1_out: std_logic_vector(7 downto 0);
+signal rega_out, regb_out: std_logic_vector(7 downto 0);
+
+begin
+mux0: MUX2
+port map(
+        X => X_IN,
+        Y => regb_out,
+        S => S1,
+        MUX_OUT => mux0_out);
+rega: REG2
+port map(
+        REG_IN=> mux0_out,
+        CLK => CLK,
+        LD => LDA,
+        REG_OUT => rega_out);
+mux1: MUX2
+port map(
+        X => rega_out,
+        Y => Y_IN,
+        S => S0,
+        MUX_OUT => mux1_out);
+regb: REG2
+port map(
+        REG_IN=> mux1_out,
+        CLK => CLK,
+        LD => LDB,
+        REG_OUT => regb_out);
+RB <= regb_out;
+        
+end structural;
